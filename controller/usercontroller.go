@@ -12,6 +12,24 @@ import (
 
 var db database.Postgres
 
+func InitDB() {
+	db = database.Postgres{
+		Config: database.Dbconfig{
+			DBPort:     5432,
+			DBName:     "postgres",
+			DBHost:     "localhost",
+			DBPassword: "postgres",
+			DBUser:     "postgres",
+		},
+	}
+	err := db.Connect()
+	if err != nil {
+		fmt.Println("Error connecting to database: ", err)
+	} else {
+		fmt.Println("Connected to database")
+	}
+}
+
 func GetAllUsers(w *http.ResponseWriter, r *http.Request) {
 
 	users, err := database.FindAll(&db)

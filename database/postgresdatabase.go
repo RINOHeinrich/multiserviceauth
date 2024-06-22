@@ -31,11 +31,11 @@ func (m *Postgres) Disconnect() error {
 	return nil
 }
 func (m *Postgres) Insert(data *models.User) error {
-	stmt, err := m.DB.Prepare("INSERT INTO users (id, Username, email, password) VALUES ($1, $2, $3, $4)")
+	stmt, err := m.DB.Prepare("INSERT INTO users (username, email, password) VALUES ($1, $2, $3)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(data.ID, data.Username, data.Email, data.Password)
+	_, err = stmt.Exec(data.Username, data.Email, data.Password)
 	if err != nil {
 		return err
 	}

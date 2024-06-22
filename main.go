@@ -5,11 +5,16 @@ import (
 	"net/http"
 
 	"github.com/RINOHeinrich/multiserviceauth/controller"
+	_ "github.com/lib/pq"
 )
+
+func init() {
+	controller.InitDB()
+}
 
 func main() {
 
-	http.HandleFunc("/", userhandler)
+	http.HandleFunc("/users", userhandler)
 	fmt.Println("Server started on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
 }

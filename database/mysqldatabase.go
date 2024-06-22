@@ -31,11 +31,11 @@ func (m *MySQL) Disconnect() error {
 	return nil
 }
 func (m *MySQL) Insert(data *models.User) error {
-	stmt, err := m.DB.Prepare("INSERT INTO users (id, Username, email, password) VALUES (?, ?, ?, ?)")
+	stmt, err := m.DB.Prepare("INSERT INTO users (Username, email, password) VALUES (?, ?, ?)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(data.ID, data.Username, data.Email, data.Password)
+	_, err = stmt.Exec(data.Username, data.Email, data.Password)
 	if err != nil {
 		return err
 	}
