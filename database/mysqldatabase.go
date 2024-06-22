@@ -7,14 +7,15 @@ import (
 	"github.com/RINOHeinrich/multiserviceauth/models"
 )
 
-// Structure pour gérer la connexion MySQL
+// struct for MySQL database
 type MySQL struct {
 	config Dbconfig
 	DB     *sql.DB
 }
 
+// Connect to MySQL
 func (m *MySQL) Connect() error {
-	// Connexion à MySQL
+
 	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", m.config.DBUser, m.config.DBPassword, m.config.DBHost, m.config.DBPort, m.config.DBName))
 	if err != nil {
 		return err
@@ -22,14 +23,18 @@ func (m *MySQL) Connect() error {
 	m.DB = db
 	return nil
 }
+
+// Disconnect from MySQL
 func (m *MySQL) Disconnect() error {
-	// Déconnexion de MySQL
 	err := m.DB.Close()
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// Implement the methods of the Database interface for MySQL
+// Insert an user
 func (m *MySQL) Insert(data *models.User) error {
 	stmt, err := m.DB.Prepare("INSERT INTO users (Username, email, password) VALUES (?, ?, ?)")
 	if err != nil {
@@ -41,6 +46,8 @@ func (m *MySQL) Insert(data *models.User) error {
 	}
 	return nil
 }
+
+// Delete an user
 func (m *MySQL) Delete(data *models.User) {
 	stmt, err := m.DB.Prepare("DELETE FROM users WHERE id = ?")
 	if err != nil {
@@ -51,6 +58,8 @@ func (m *MySQL) Delete(data *models.User) {
 		fmt.Printf("error when deleting users: \n: %s", err)
 	}
 }
+
+// Update an user
 func (m *MySQL) Update(id string, data *models.User) {
 	stmt, err := m.DB.Prepare("UPDATE users SET Username = ?, email = ?, password = ? WHERE id = ?")
 	if err != nil {
@@ -61,6 +70,8 @@ func (m *MySQL) Update(id string, data *models.User) {
 		fmt.Printf("error when updating users: \n: %s", err)
 	}
 }
+
+// Find an user
 func (m *MySQL) Find(id string) (*models.User, error) {
 	stmt, err := m.DB.Prepare("SELECT * FROM users WHERE id = ?")
 	if err != nil {
@@ -73,6 +84,8 @@ func (m *MySQL) Find(id string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+// Find all users
 func (m *MySQL) FindAll() ([]models.User, error) {
 	rows, err := m.DB.Query("SELECT * FROM users")
 	if err != nil {

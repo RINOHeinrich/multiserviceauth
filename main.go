@@ -13,8 +13,8 @@ func init() {
 }
 
 func main() {
-
 	http.HandleFunc("/users", userhandler)
+	http.HandleFunc("/login", authhandler)
 	fmt.Println("Server started on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
 }
@@ -36,6 +36,16 @@ func userhandler(w http.ResponseWriter, r *http.Request) {
 		controller.UpdateUser(&w, r)
 	case "DELETE":
 		controller.DeleteUser(&w, r)
+	default:
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+func authhandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	fmt.Println(query)
+	switch r.Method {
+	case "POST":
+		controller.Login(&w, r)
 	default:
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

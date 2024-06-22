@@ -10,12 +10,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// Structure pour gérer la connexion MongoDB
+// struct for MongoDB database
 type MongoDB struct {
 	config Dbconfig
 	DB     *mongo.Client
 }
 
+// Connect to MongoDB
 func (m *MongoDB) Connect() error {
 	clientOptions := options.Client().ApplyURI(fmt.Sprintf("mongodb://%s:%s@%s:%d", m.config.DBUser, m.config.DBHost, m.config.DBPassword, m.config.DBPort))
 	client, err := mongo.Connect(context.Background(), clientOptions)
@@ -31,14 +32,17 @@ func (m *MongoDB) Connect() error {
 	return nil
 }
 
+// Disconnect from MongoDB
 func (m *MongoDB) Disconnect() error {
-	// Déconnexion de MongoDB
 	err := m.DB.Disconnect(context.Background())
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// Implement the methods of the Database interface for MongoDB
+// Insert an user
 func (m *MongoDB) Insert(data *models.User) error {
 	userCollection := m.DB.Database(m.config.DBName).Collection("User")
 	_, err := userCollection.InsertOne(context.Background(), data)
@@ -47,6 +51,8 @@ func (m *MongoDB) Insert(data *models.User) error {
 	}
 	return nil
 }
+
+// Delete an user
 func (m *MongoDB) Delete(id string) error {
 	userCollection := m.DB.Database(m.config.DBName).Collection("User")
 	filter := bson.E{Key: "id", Value: id}
@@ -56,6 +62,8 @@ func (m *MongoDB) Delete(id string) error {
 	}
 	return nil
 }
+
+// Update an user
 func (m *MongoDB) Update(id string, data *models.User) error {
 	userCollection := m.DB.Database(m.config.DBName).Collection("User")
 	filter := bson.E{Key: "id", Value: id}
@@ -66,6 +74,8 @@ func (m *MongoDB) Update(id string, data *models.User) error {
 	}
 	return nil
 }
+
+// Find an user
 func (m *MongoDB) Find(id string) (*models.User, error) {
 	userCollection := m.DB.Database(m.config.DBName).Collection("User")
 	filter := bson.E{Key: "id", Value: id}
@@ -76,6 +86,8 @@ func (m *MongoDB) Find(id string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+// Find all users
 func (m *MongoDB) FindAll() ([]models.User, error) {
 	userCollection := m.DB.Database(m.config.DBName).Collection("User")
 	cursor, err := userCollection.Find(context.Background(), bson.D{})

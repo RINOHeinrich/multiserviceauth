@@ -13,8 +13,9 @@ type Postgres struct {
 	DB     *sql.DB
 }
 
+// Connect to PostgreSQL
 func (m *Postgres) Connect() error {
-	// Connexion à MySQL
+
 	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", m.Config.DBHost, m.Config.DBPort, m.Config.DBUser, m.Config.DBPassword, m.Config.DBName))
 	if err != nil {
 		return err
@@ -22,14 +23,18 @@ func (m *Postgres) Connect() error {
 	m.DB = db
 	return nil
 }
+
+// Disconnect from PostgreSQL
 func (m *Postgres) Disconnect() error {
-	// Déconnexion de MySQL
 	err := m.DB.Close()
 	if err != nil {
 		return err
 	}
 	return nil
 }
+
+// Implement the methods of the Database interface for PostgreSQL
+// Insert an user
 func (m *Postgres) Insert(data *models.User) error {
 	stmt, err := m.DB.Prepare("INSERT INTO users (username, email, password) VALUES ($1, $2, $3)")
 	if err != nil {
@@ -41,6 +46,8 @@ func (m *Postgres) Insert(data *models.User) error {
 	}
 	return nil
 }
+
+// Delete an user
 func (m *Postgres) Delete(id string) error {
 	stmt, err := m.DB.Prepare("DELETE FROM users WHERE id = $1")
 	if err != nil {
@@ -52,6 +59,8 @@ func (m *Postgres) Delete(id string) error {
 	}
 	return nil
 }
+
+// Update an user
 func (m *Postgres) Update(id string, data *models.User) error {
 	stmt, err := m.DB.Prepare("UPDATE users SET Username = $1, email = $2, password = $3 WHERE id = $4")
 	if err != nil {
@@ -63,6 +72,8 @@ func (m *Postgres) Update(id string, data *models.User) error {
 	}
 	return nil
 }
+
+// Find an user by id
 func (m *Postgres) Find(id string) (*models.User, error) {
 	stmt, err := m.DB.Prepare("SELECT * FROM users WHERE id = $1")
 	if err != nil {
@@ -75,6 +86,8 @@ func (m *Postgres) Find(id string) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+// Find all users
 func (m *Postgres) FindAll() ([]models.User, error) {
 	rows, err := m.DB.Query("SELECT * FROM users")
 	if err != nil {
@@ -91,5 +104,3 @@ func (m *Postgres) FindAll() ([]models.User, error) {
 	}
 	return users, nil
 }
-
-// Implémentez les autres méthodes de l'interface Database pour MongoDB
