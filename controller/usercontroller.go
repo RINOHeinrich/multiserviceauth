@@ -10,10 +10,10 @@ import (
 	"github.com/RINOHeinrich/multiserviceauth/models"
 )
 
-var db database.Postgres
+var DB database.Postgres
 
 func InitDB() {
-	db = database.Postgres{
+	DB = database.Postgres{
 		Config: database.Dbconfig{
 			DBPort:     5432,
 			DBName:     "postgres",
@@ -22,7 +22,7 @@ func InitDB() {
 			DBUser:     "postgres",
 		},
 	}
-	err := db.Connect()
+	err := DB.Connect()
 	if err != nil {
 		fmt.Println("Error connecting to database: ", err)
 	} else {
@@ -32,7 +32,7 @@ func InitDB() {
 
 func GetAllUsers(w *http.ResponseWriter, r *http.Request) {
 
-	users, err := database.FindAll(&db)
+	users, err := database.FindAll(&DB)
 	if err != nil {
 		fmt.Println("Error getting users: ", err)
 		return
@@ -46,7 +46,7 @@ func GetUser(w *http.ResponseWriter, r *http.Request) {
 		http.Error(*w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	user, err := database.Find(&db, *id_str)
+	user, err := database.Find(&DB, *id_str)
 	if err != nil {
 		fmt.Println("Error getting user: ", err)
 		return
@@ -58,7 +58,7 @@ func InsertUser(w *http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(user)
 	// Handle POST request
 	user.Password = helper.HashPassword(user.Password)
-	err := database.Insert(&db, user)
+	err := database.Insert(&DB, user)
 	if err != nil {
 		fmt.Println("Error inserting user: ", err)
 		return
@@ -76,7 +76,7 @@ func UpdateUser(w *http.ResponseWriter, r *http.Request) {
 		http.Error(*w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	err := database.Update(&db, *id_str, &user)
+	err := database.Update(&DB, *id_str, &user)
 	if err != nil {
 		fmt.Println("Error updating user: ", err)
 		return
@@ -90,7 +90,7 @@ func DeleteUser(w *http.ResponseWriter, r *http.Request) {
 		http.Error(*w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	err := database.Delete(&db, *id_str)
+	err := database.Delete(&DB, *id_str)
 	if err != nil {
 		fmt.Println("Error deleting user: ", err)
 		return

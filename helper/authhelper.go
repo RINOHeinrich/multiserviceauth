@@ -10,9 +10,17 @@ import (
 	"os"
 	"time"
 
+	"github.com/RINOHeinrich/multiserviceauth/database"
+	"github.com/RINOHeinrich/multiserviceauth/models"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
+
+type TokenManager struct {
+	D          time.Duration
+	PrivateKey *ecdsa.PrivateKey
+	User       *models.User
+}
 
 func HashPassword(password string) string {
 	// Hash the password with the default cost
@@ -30,7 +38,7 @@ func ComparePassword(hashedPassword string, password string) (bool, error) {
 	}
 	return true, nil
 }
-func SavePrivateToDisk(filename string, key *ecdsa.PrivateKey) {
+func SavePrivateToDisk(filename string, key *ecdsa.PrivateKey) error {
 	outFile, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -39,14 +47,15 @@ func SavePrivateToDisk(filename string, key *ecdsa.PrivateKey) {
 	// Save the private key to the file
 	keyBytes, err := x509.MarshalECPrivateKey(key)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = pem.Encode(outFile, &pem.Block{Type: "PRIVATE KEY", Bytes: keyBytes})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
-func SavePublicToDisk(filename string, pubkey *ecdsa.PublicKey) {
+func SavePublicToDisk(filename string, pubkey *ecdsa.PublicKey) error {
 	outFile, err := os.Create(filename)
 	if err != nil {
 		log.Fatal(err)
@@ -55,17 +64,18 @@ func SavePublicToDisk(filename string, pubkey *ecdsa.PublicKey) {
 	// Save the public key to the file
 	keyBytes, err := x509.MarshalPKIXPublicKey(pubkey)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	err = pem.Encode(outFile, &pem.Block{Type: "PUBLIC KEY", Bytes: keyBytes})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }
-func LoadPrivateKey(filename string) *ecdsa.PrivateKey {
+func LoadPrivateKey(filename string) (*ecdsa.PrivateKey, error) {
 	inFile, err := os.Open(filename)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer inFile.Close()
 	// Load the private key from the file
@@ -73,14 +83,14 @@ func LoadPrivateKey(filename string) *ecdsa.PrivateKey {
 	buffer := make([]byte, fileInfo.Size())
 	_, err = inFile.Read(buffer)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	data, _ := pem.Decode(buffer)
 	key, err := x509.ParseECPrivateKey(data.Bytes)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return key
+	return key, nil
 }
 func LoadPublicKey(filename string) *ecdsa.PublicKey {
 	inFile, err := os.Open(filename)
@@ -115,20 +125,55 @@ func GenerateKeys() (*ecdsa.PrivateKey, *ecdsa.PublicKey) {
 
 	return Keys, publicKey
 }
+func CheckKeys(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+func (t *TokenManager) GenerateToken() (string, error) {
 
-func GenerateToken(d time.Duration, privateKey *ecdsa.PrivateKey) (string, error) {
 	// Create the JWT claims
 	claims := jwt.MapClaims{
-		"exp": time.Now().Add(d).Unix(),
+		"id":  t.User.ID,
+		"exp": time.Now().Add(t.D).Unix(),
 	}
 
 	// Create the JWT token
 	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
 
 	// Sign the token with the private key
-	signedToken, err := token.SignedString(privateKey)
+	signedToken, err := token.SignedString(t.PrivateKey)
 	if err != nil {
 		return "", err
 	}
 	return signedToken, nil
+}
+
+type LoginManager struct {
+	Userlogin         models.UserLogin
+	HashPassword      string
+	LoginErrorMessage error
+	Tm                *TokenManager
+	Db                database.Database
+}
+
+func (l *LoginManager) CheckPassword() (*bool, error) {
+
+	iscorrect, err := ComparePassword(l.HashPassword, l.Userlogin.Password)
+	if err != nil || !iscorrect {
+		log.Default().Println(err)
+		err = l.LoginErrorMessage
+		return nil, err
+	}
+	return &iscorrect, nil
+
+}
+func (l *LoginManager) CheckUser() (*models.User, error) {
+	user, err := database.Find(l.Db, l.Userlogin.Email)
+	if err != nil {
+		log.Default().Println(err)
+		return nil, l.LoginErrorMessage
+	}
+	return user, nil
 }

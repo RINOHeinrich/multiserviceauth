@@ -74,13 +74,13 @@ func (m *Postgres) Update(id string, data *models.User) error {
 }
 
 // Find an user by id
-func (m *Postgres) Find(id string) (*models.User, error) {
-	stmt, err := m.DB.Prepare("SELECT * FROM users WHERE id = $1")
+func (m *Postgres) Find(email string) (*models.User, error) {
+	stmt, err := m.DB.Prepare("SELECT * FROM users WHERE email = $1")
 	if err != nil {
 		return nil, err
 	}
 	var user models.User
-	err = stmt.QueryRow(id).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+	err = stmt.QueryRow(email).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
 	if err != nil {
 		return nil, err
 	}
