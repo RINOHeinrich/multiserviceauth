@@ -12,31 +12,34 @@ import (
 	"github.com/RINOHeinrich/multiserviceauth/models"
 )
 
+var Loginmanager helper.LoginManager
+var Tokenmanager helper.TokenManager
+
 func Login(w *http.ResponseWriter, r *http.Request) {
 	userlogin := models.UserLogin{}
 	json.NewDecoder(r.Body).Decode(&userlogin)
-	tokenmanager := helper.TokenManager{
+	Tokenmanager = helper.TokenManager{
 		D: 1 * time.Hour,
 	}
-	loginmanager := helper.LoginManager{
+	Loginmanager = helper.LoginManager{
 		Userlogin:         userlogin,
 		HashPassword:      "",
 		LoginErrorMessage: errors.New("invalid username or password"),
-		Tm:                &tokenmanager,
+		Tm:                &Tokenmanager,
 		Db:                &DB,
 	}
-	user, err := loginmanager.CheckUser()
+	user, err := Loginmanager.CheckUser()
 	if err != nil {
 		http.Error(*w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	loginmanager.HashPassword = user.Password
-	_, err = loginmanager.CheckPassword()
+	Loginmanager.HashPassword = user.Password
+	_, err = Loginmanager.CheckPassword()
 	if err != nil {
 		http.Error(*w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	tokenmanager.User = user
+	Tokenmanager.User = user
 	privatekeypath := "config/keys/private.pem"
 	publickeypath := "config/keys/public.pem"
 	if !helper.CheckKeys(privatekeypath) {
@@ -44,15 +47,20 @@ func Login(w *http.ResponseWriter, r *http.Request) {
 		helper.SavePublicToDisk(publickeypath, pubkey)
 		helper.SavePrivateToDisk(privatekeypath, privatekey)
 	}
-	tokenmanager.PrivateKey, err = helper.LoadPrivateKey(privatekeypath)
+	Tokenmanager.PrivateKey, err = helper.LoadPrivateKey(privatekeypath)
 	if err != nil {
-		log.Fatal(err)
+		log.Default().Println(err)
+		return
+	}
+	Tokenmanager.PublicKey, err = helper.LoadPublicKey(publickeypath)
+	if err != nil {
+		log.Default().Println(err)
 		return
 	}
 
-	token, err := tokenmanager.GenerateToken()
+	token, err := Tokenmanager.GenerateToken()
 	if err != nil {
-		log.Fatal(err)
+		log.Default().Println(err)
 		return
 	}
 	json.NewEncoder(*w).Encode(token)

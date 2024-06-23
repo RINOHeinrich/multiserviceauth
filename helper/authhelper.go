@@ -19,6 +19,7 @@ import (
 type TokenManager struct {
 	D          time.Duration
 	PrivateKey *ecdsa.PrivateKey
+	PublicKey  *ecdsa.PublicKey
 	User       *models.User
 }
 
@@ -92,10 +93,10 @@ func LoadPrivateKey(filename string) (*ecdsa.PrivateKey, error) {
 	}
 	return key, nil
 }
-func LoadPublicKey(filename string) *ecdsa.PublicKey {
+func LoadPublicKey(filename string) (*ecdsa.PublicKey, error) {
 	inFile, err := os.Open(filename)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer inFile.Close()
 	// Load the public key from the file
@@ -103,14 +104,14 @@ func LoadPublicKey(filename string) *ecdsa.PublicKey {
 	buffer := make([]byte, fileInfo.Size())
 	_, err = inFile.Read(buffer)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	data, _ := pem.Decode(buffer)
 	key, err := x509.ParsePKIXPublicKey(data.Bytes)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return key.(*ecdsa.PublicKey)
+	return key.(*ecdsa.PublicKey), nil
 }
 func GenerateKeys() (*ecdsa.PrivateKey, *ecdsa.PublicKey) {
 	// Generate the private key
@@ -148,6 +149,19 @@ func (t *TokenManager) GenerateToken() (string, error) {
 		return "", err
 	}
 	return signedToken, nil
+}
+
+func (t *TokenManager) VerifyToken(tokenString string) (bool, error) {
+	// Parse the token
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return t.PublicKey, nil
+	})
+
+	// Check if the token is valid
+	if !token.Valid {
+		return false, nil
+	}
+	return true, nil
 }
 
 type LoginManager struct {
