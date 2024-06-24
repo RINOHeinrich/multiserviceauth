@@ -12,7 +12,7 @@ import (
 
 	"github.com/RINOHeinrich/multiserviceauth/database"
 	"github.com/RINOHeinrich/multiserviceauth/models"
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
