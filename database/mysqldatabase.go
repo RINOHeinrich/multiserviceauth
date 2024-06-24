@@ -3,20 +3,24 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 
 	"github.com/RINOHeinrich/multiserviceauth/models"
+	"github.com/joho/godotenv"
 )
 
 // struct for MySQL database
 type MySQL struct {
-	config Dbconfig
+	Config Dbconfig
 	DB     *sql.DB
 }
 
 // Connect to MySQL
 func (m *MySQL) Connect() error {
 
-	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", m.config.DBUser, m.config.DBPassword, m.config.DBHost, m.config.DBPort, m.config.DBName))
+	db, err := sql.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", m.Config.DBUser, m.Config.DBPassword, m.Config.DBHost, m.Config.DBPort, m.Config.DBName))
 	if err != nil {
 		return err
 	}
@@ -104,5 +108,19 @@ func (m *MySQL) FindAll() ([]models.User, error) {
 }
 func (m *MySQL) LoadConfig(filename string) error {
 
+	err := godotenv.Load(filename)
+	if err != nil {
+		log.Default().Println(err)
+	}
+	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil {
+		return err
+	}
+
+	m.Config.DBHost = os.Getenv("DB_HOST")
+	m.Config.DBPort = port
+	m.Config.DBUser = os.Getenv("DB_USER")
+	m.Config.DBPassword = os.Getenv("DB_PASSWORD")
+	m.Config.DBName = os.Getenv("DB_NAME")
 	return nil
 }

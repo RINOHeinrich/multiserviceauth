@@ -17,7 +17,6 @@ func (t *TokenManager) GenerateToken() (string, error) {
 
 	// Create the JWT claims
 	claims := jwt.MapClaims{
-		"id":   t.User.ID,
 		"data": t.User,
 		"exp":  time.Now().Add(t.Duration).Unix(),
 	}
