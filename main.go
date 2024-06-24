@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RINOHeinrich/multiserviceauth/controller"
+	"github.com/RINOHeinrich/multiserviceauth/middleware"
 	_ "github.com/lib/pq"
 )
 
@@ -13,8 +14,14 @@ func init() {
 }
 
 func main() {
-	http.HandleFunc("/users", userhandler)
-	http.HandleFunc("/login", authhandler)
+	var cors middleware.CORSHandler
+	cors.AccessControlAllowOrigin = "*"
+	cors.AccessControlAllowMethods = "POST, PUT, DELETE, OPTIONS"
+	cors.AccessControlAllowHeaders = "Content-Type, Authorization"
+	cors.IgnoredOptions = true
+	cors.AccessControlAllowCredentials = "true"
+	http.HandleFunc("/users", cors.Handle(userhandler))
+	http.HandleFunc("/login", cors.Handle(authhandler))
 	fmt.Println("Server started on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
 }
