@@ -102,3 +102,7 @@ func (m *MySQL) FindAll() ([]models.User, error) {
 	}
 	return users, nil
 }
+func (m *MySQL) LoadConfig(filename string) error {
+
+	return nil
+}

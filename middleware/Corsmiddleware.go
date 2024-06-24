@@ -2,7 +2,9 @@ package middleware
 
 import (
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
@@ -28,4 +30,16 @@ func (c *CORSHandler) Handle(next http.HandlerFunc) http.HandlerFunc {
 		}
 		next(w, r)
 	}
+}
+func (c *CORSHandler) LoadConfig(filename string) error {
+	err := godotenv.Load(filename)
+	if err != nil {
+		return err
+	}
+	c.AccessControlAllowOrigin = os.Getenv("CORS_ALLOW_ORIGIN")
+	c.AccessControlAllowMethods = os.Getenv("CORS_ALLOW_METHODS")
+	c.AccessControlAllowHeaders = os.Getenv("CORS_ALLOW_HEADERS")
+	c.AccessControlAllowCredentials = os.Getenv("CORS_ALLOW_CREDENTIALS")
+
+	return nil
 }

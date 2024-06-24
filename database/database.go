@@ -10,6 +10,7 @@ type Database interface {
 	Delete(id string) error
 	Find(id string) (*models.User, error)
 	FindAll() ([]models.User, error)
+	LoadConfig(filename string) error
 	// Ajoutez d'autres méthodes selon vos besoins
 }
 type Dbconfig struct {

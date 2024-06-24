@@ -2,10 +2,14 @@ package database
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 
 	"database/sql"
 
 	"github.com/RINOHeinrich/multiserviceauth/models"
+	"github.com/joho/godotenv"
 )
 
 type Postgres struct {
@@ -103,4 +107,21 @@ func (m *Postgres) FindAll() ([]models.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+func (p *Postgres) LoadConfig(filename string) error {
+	err := godotenv.Load(filename)
+	if err != nil {
+		log.Default().Println(err)
+	}
+	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
+	if err != nil {
+		return err
+	}
+
+	p.Config.DBHost = os.Getenv("DB_HOST")
+	p.Config.DBPort = port
+	p.Config.DBUser = os.Getenv("DB_USER")
+	p.Config.DBPassword = os.Getenv("DB_PASSWORD")
+	p.Config.DBName = os.Getenv("DB_NAME")
+	return nil
 }

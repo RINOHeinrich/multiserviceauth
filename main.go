@@ -15,11 +15,7 @@ func init() {
 
 func main() {
 	var cors middleware.CORSHandler
-	cors.AccessControlAllowOrigin = "*"
-	cors.AccessControlAllowMethods = "POST, PUT, DELETE, OPTIONS"
-	cors.AccessControlAllowHeaders = "Content-Type, Authorization"
-	cors.IgnoredOptions = true
-	cors.AccessControlAllowCredentials = "true"
+	cors.LoadConfig("config/.env")
 	http.HandleFunc("/users", cors.Handle(userhandler))
 	http.HandleFunc("/login", cors.Handle(authhandler))
 	fmt.Println("Server started on http://localhost:8080")

@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/RINOHeinrich/multiserviceauth/database"
@@ -13,16 +14,12 @@ import (
 var DB database.Postgres
 
 func InitDB() {
-	DB = database.Postgres{
-		Config: database.Dbconfig{
-			DBPort:     5432,
-			DBName:     "postgres",
-			DBHost:     "localhost",
-			DBPassword: "postgres",
-			DBUser:     "postgres",
-		},
+	// Load the database configuration from the .env file
+	err := DB.LoadConfig("config/.env")
+	if err != nil {
+		log.Default().Println(err)
 	}
-	err := DB.Connect()
+	err = DB.Connect()
 	if err != nil {
 		fmt.Println("Error connecting to database: ", err)
 	} else {

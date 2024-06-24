@@ -100,3 +100,7 @@ func (m *MongoDB) FindAll() ([]models.User, error) {
 	}
 	return users, nil
 }
+func (m *MongoDB) LoadConfig(filename string) error {
+
+	return nil
+}
