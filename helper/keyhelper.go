@@ -6,10 +6,11 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"log"
 	"os"
 
-	"github.com/joho/godotenv"
+	"github.com/RINOHeinrich/multiserviceauth/models"
 )
 
 type KeyManager struct {
@@ -52,7 +53,6 @@ func (k *KeyManager) SavePublicToDisk(filename string) error {
 	return nil
 }
 func (k *KeyManager) LoadPrivateKey(filename string) error {
-
 	inFile, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -109,13 +109,9 @@ func (k *KeyManager) CheckKeys(filename string) bool {
 	}
 	return true
 }
-func (k *KeyManager) LoadConfig(conffilepath string) error {
-	err := godotenv.Load(conffilepath)
-	if err != nil {
-		log.Default().Println(err)
-	}
-	privatekeypath := os.Getenv("PRIVATE_KEY")
-	publickeypath := os.Getenv("PUBLIC_KEY")
+func (k *KeyManager) LoadConfig(config *models.Keyconfig) error {
+	privatekeypath := config.PrivateKeyPath
+	publickeypath := config.PublicKeyPath
 	if !k.CheckKeys(privatekeypath) {
 		k.GenerateKeys()
 		err := k.SavePrivateToDisk(privatekeypath)
@@ -127,7 +123,7 @@ func (k *KeyManager) LoadConfig(conffilepath string) error {
 			return err
 		}
 	}
-	err = k.LoadPrivateKey(privatekeypath)
+	err := k.LoadPrivateKey(privatekeypath)
 	if err != nil {
 		return err
 	}
@@ -136,4 +132,10 @@ func (k *KeyManager) LoadConfig(conffilepath string) error {
 		return err
 	}
 	return nil
+}
+func (k *KeyManager) GetPublicKey() (*ecdsa.PublicKey, error) {
+	if k.PublicKey == nil {
+		return nil, errors.New("public key not loaded")
+	}
+	return k.PublicKey, nil
 }

@@ -3,11 +3,10 @@ package controller
 import (
 	"encoding/json"
 	"errors"
-	"net/http"
-	"time"
-
 	"log"
+	"net/http"
 
+	"github.com/RINOHeinrich/multiserviceauth/config"
 	"github.com/RINOHeinrich/multiserviceauth/helper"
 	"github.com/RINOHeinrich/multiserviceauth/models"
 )
@@ -19,9 +18,7 @@ var Keymanager helper.KeyManager
 func Login(w *http.ResponseWriter, r *http.Request) {
 	userlogin := models.UserLogin{}
 	json.NewDecoder(r.Body).Decode(&userlogin)
-	Tokenmanager = helper.TokenManager{
-		Duration: 1 * time.Hour,
-	}
+	Tokenmanager.LoadConfig(&config.Config)
 	Loginmanager = helper.LoginManager{
 		Userlogin:         userlogin,
 		HashPassword:      "",
@@ -40,14 +37,14 @@ func Login(w *http.ResponseWriter, r *http.Request) {
 		http.Error(*w, err.Error(), http.StatusUnauthorized)
 		return
 	}
+	Keymanager.LoadConfig(&config.Config.Keyconfig)
 	Tokenmanager.User = user
-	Keymanager.LoadConfig("config/.env")
 	Tokenmanager.Keymanager = Keymanager
-
 	token, err := Tokenmanager.GenerateToken()
 	if err != nil {
 		log.Default().Println(err)
 		return
 	}
+
 	json.NewEncoder(*w).Encode(token)
 }

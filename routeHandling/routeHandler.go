@@ -1,13 +1,34 @@
-package requestHandler
+package routeHandler
 
 import (
+	"crypto/x509"
 	"fmt"
 	"net/http"
 
 	"github.com/RINOHeinrich/multiserviceauth/controller"
 )
 
-func userHandler(w http.ResponseWriter, r *http.Request) {
+func Loginhandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	fmt.Println(query)
+	switch r.Method {
+	case "POST":
+		controller.Login(&w, r)
+	default:
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+func Registerhandler(w http.ResponseWriter, r *http.Request) {
+	query := r.URL.Query()
+	fmt.Println(query)
+	switch r.Method {
+	case "POST":
+		controller.InsertUser(&w, r)
+	default:
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	}
+}
+func Userhandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	fmt.Println(query)
 	switch r.Method {
@@ -18,8 +39,6 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		controller.GetUser(&w, r)
-	case "POST":
-		controller.InsertUser(&w, r)
 	case "PUT":
 		controller.UpdateUser(&w, r)
 	case "DELETE":
@@ -28,12 +47,22 @@ func userHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}
 }
-func loginHandler(w http.ResponseWriter, r *http.Request) {
+func Pubkeyhandler(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	fmt.Println(query)
 	switch r.Method {
-	case "POST":
-		//controller.Login(&w, r)
+	case "GET":
+		pubkey, err := controller.Keymanager.GetPublicKey()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+		pubkeyBytes, err := x509.MarshalPKIXPublicKey(pubkey)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Write(pubkeyBytes)
 	default:
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 	}

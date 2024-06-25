@@ -13,13 +13,6 @@ type Database interface {
 	LoadConfig(filename string) error
 	// Ajoutez d'autres méthodes selon vos besoins
 }
-type Dbconfig struct {
-	DBPort     int
-	DBName     string
-	DBHost     string
-	DBPassword string
-	DBUser     string
-}
 
 func Find(db Database, id string) (*models.User, error) {
 	user, err := db.Find(id)

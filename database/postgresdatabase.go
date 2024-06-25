@@ -13,7 +13,7 @@ import (
 )
 
 type Postgres struct {
-	Config Dbconfig
+	Config models.Dbconfig
 	DB     *sql.DB
 }
 

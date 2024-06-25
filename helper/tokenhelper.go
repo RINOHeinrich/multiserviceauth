@@ -14,7 +14,6 @@ type TokenManager struct {
 }
 
 func (t *TokenManager) GenerateToken() (string, error) {
-
 	// Create the JWT claims
 	claims := jwt.MapClaims{
 		"data": t.User,
@@ -43,4 +42,20 @@ func (t *TokenManager) VerifyToken(tokenString string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+func (t *TokenManager) GetClaims(tokenString string) (jwt.MapClaims, error) {
+	// Parse the token
+	token, _ := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return t.Keymanager.PublicKey, nil
+	})
+	// Get the claims
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		return nil, nil
+	}
+	return claims, nil
+}
+func (t *TokenManager) LoadConfig(config *AppConfig) error {
+	t.Duration = config.Tokenconfig.Duration
+	return nil
 }

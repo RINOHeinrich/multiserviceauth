@@ -12,7 +12,7 @@ import (
 
 // struct for MongoDB database
 type MongoDB struct {
-	config Dbconfig
+	config models.Dbconfig
 	DB     *mongo.Client
 }
 

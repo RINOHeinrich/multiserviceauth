@@ -13,7 +13,7 @@ import (
 
 // struct for MySQL database
 type MySQL struct {
-	Config Dbconfig
+	Config models.Dbconfig
 	DB     *sql.DB
 }
 
