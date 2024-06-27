@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/RINOHeinrich/multiserviceauth/config"
 	"github.com/RINOHeinrich/multiserviceauth/database"
 	"github.com/RINOHeinrich/multiserviceauth/helper"
 	"github.com/RINOHeinrich/multiserviceauth/models"
 )
 
 var DB database.Postgres
+var Bh helper.BcryptHandler
 
 func InitDB() {
 	// Load the database configuration from the .env file
@@ -52,8 +54,9 @@ func GetUser(w *http.ResponseWriter, r *http.Request) {
 func InsertUser(w *http.ResponseWriter, r *http.Request) {
 	user := &models.User{}
 	json.NewDecoder(r.Body).Decode(user)
+	Bh.Config = config.Config.Bcryptconfig
 	// Handle POST request
-	user.Password = helper.HashPassword(user.Password)
+	user.Password = Bh.HashPassword(user.Password)
 	err := database.Insert(&DB, user)
 	if err != nil {
 		fmt.Println("Error inserting user: ", err)
@@ -65,7 +68,8 @@ func InsertUser(w *http.ResponseWriter, r *http.Request) {
 func UpdateUser(w *http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	json.NewDecoder(r.Body).Decode(&user)
-	user.Password = helper.HashPassword(user.Password)
+	Bh.Config = config.Config.Bcryptconfig
+	user.Password = Bh.HashPassword(user.Password)
 	query := r.URL.Query()
 	id_str := &query["id"][0]
 	if *id_str == "" {

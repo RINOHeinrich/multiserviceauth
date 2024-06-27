@@ -1,7 +1,7 @@
-POST http://localhost:8080/users
+POST http://localhost:4000/register
 
 {
-    "username": "John",
-    "email": "John@gmail.com",
+    "username": "Jacque",
+    "email": "Jacque@gmail.com",
     "password": "123456"
 }

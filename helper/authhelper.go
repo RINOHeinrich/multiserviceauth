@@ -14,11 +14,12 @@ type LoginManager struct {
 	LoginErrorMessage error
 	Tm                *TokenManager
 	Db                database.Database
+	Bh                *BcryptHandler
 }
 
 func (l *LoginManager) CheckPassword() (*bool, error) {
 
-	iscorrect, err := ComparePassword(l.HashPassword, l.Userlogin.Password)
+	iscorrect, err := l.Bh.ComparePassword(l.HashPassword, l.Userlogin.Password)
 	if err != nil || !iscorrect {
 		log.Default().Println(err)
 		err = l.LoginErrorMessage
@@ -35,7 +36,12 @@ func (l *LoginManager) CheckUser() (*models.User, error) {
 	}
 	return user, nil
 }
-func HashPassword(password string) string {
+
+type BcryptHandler struct {
+	Config models.Bcryptconfig
+}
+
+func (b *BcryptHandler) HashPassword(password string) string {
 	// Hash the password with the default cost
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -43,7 +49,7 @@ func HashPassword(password string) string {
 	}
 	return string(hash)
 }
-func ComparePassword(hashedPassword string, password string) (bool, error) {
+func (b *BcryptHandler) ComparePassword(hashedPassword string, password string) (bool, error) {
 	// Compare the hashed password with the password
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {

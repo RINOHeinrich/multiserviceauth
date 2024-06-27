@@ -22,3 +22,6 @@ type Keyconfig struct {
 type Tokenconfig struct {
 	Duration time.Duration
 }
+type Bcryptconfig struct {
+	Cost int
+}

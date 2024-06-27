@@ -10,10 +10,13 @@ import (
 )
 
 type AppConfig struct {
-	Dbconfig    models.Dbconfig
-	Corsconfig  models.Corsconfig
-	Keyconfig   models.Keyconfig
-	Tokenconfig models.Tokenconfig
+	Dbconfig     models.Dbconfig
+	Corsconfig   models.Corsconfig
+	Keyconfig    models.Keyconfig
+	Tokenconfig  models.Tokenconfig
+	Bcryptconfig models.Bcryptconfig
+	Port         int
+	Host         string
 }
 
 func (a *AppConfig) LoadConfig(filename string) error {
@@ -41,5 +44,14 @@ func (a *AppConfig) LoadConfig(filename string) error {
 	a.Keyconfig.PrivateKeyPath = os.Getenv("PRIVATE_KEY_PATH")
 	a.Keyconfig.PublicKeyPath = os.Getenv("PUBLIC_KEY_PATH")
 	a.Tokenconfig.Duration = tokenduration
+	a.Bcryptconfig.Cost, err = strconv.Atoi(os.Getenv("BCRYPT_COST"))
+	if err != nil {
+		return err
+	}
+	a.Port, err = strconv.Atoi(os.Getenv("PORT"))
+	a.Host = os.Getenv("HOST")
+	if err != nil {
+		return err
+	}
 	return nil
 }

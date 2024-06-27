@@ -23,6 +23,7 @@ func main() {
 	http.HandleFunc("/login", cors.Handle(routeHandler.Loginhandler))
 	http.HandleFunc("/register", cors.Handle(routeHandler.Registerhandler))
 	http.HandleFunc("/pubkey", cors.Handle(routeHandler.Pubkeyhandler))
-	fmt.Println("Server started on http://localhost:8080")
-	http.ListenAndServe(":8080", nil)
+	door := config.Config.Host + ":" + fmt.Sprint(config.Config.Port)
+	fmt.Printf("Server started on http://%s\n", door)
+	http.ListenAndServe(door, nil)
 }
