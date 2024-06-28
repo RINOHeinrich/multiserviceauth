@@ -3,7 +3,6 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/RINOHeinrich/multiserviceauth/config"
@@ -16,16 +15,14 @@ var DB database.Postgres
 var Bh helper.BcryptHandler
 
 func InitDB() {
+	dbconfig := config.Config.Dbconfig
 	// Load the database configuration from the .env file
-	err := DB.LoadConfig("config/.env")
-	if err != nil {
-		log.Default().Println(err)
-	}
-	err = DB.Connect()
+	DB.LoadConfig(&dbconfig)
+	err := DB.Connect()
 	if err != nil {
 		fmt.Println("Error connecting to database: ", err)
 	}
-	fmt.Println("Connected to database")
+
 }
 
 func GetAllUsers(w *http.ResponseWriter, r *http.Request) {
@@ -52,12 +49,25 @@ func GetUser(w *http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(*w).Encode(user)
 }
 func InsertUser(w *http.ResponseWriter, r *http.Request) {
-	user := &models.User{}
-	json.NewDecoder(r.Body).Decode(user)
+	user := models.User{}
+	json.NewDecoder(r.Body).Decode(&user)
+	Loginmanager.Db = &DB
+	User, err := Loginmanager.CheckUser()
+	if err != nil {
+		http.Error(*w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+	user1 := User
+	if user1.Login == user.Login {
+		http.Error(*w, "User already exists", http.StatusUnauthorized)
+		return
+	}
 	Bh.Config = config.Config.Bcryptconfig
 	// Handle POST request
 	user.Password = Bh.HashPassword(user.Password)
-	err := database.Insert(&DB, user)
+
+	err = DB.Insert(&user)
+
 	if err != nil {
 		fmt.Println("Error inserting user: ", err)
 		return

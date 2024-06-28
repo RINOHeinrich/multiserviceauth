@@ -24,6 +24,10 @@ func (m *MySQL) Connect() error {
 	if err != nil {
 		return err
 	}
+	err = db.Ping()
+	if err != nil {
+		return err
+	}
 	m.DB = db
 	return nil
 }
@@ -40,11 +44,11 @@ func (m *MySQL) Disconnect() error {
 // Implement the methods of the Database interface for MySQL
 // Insert an user
 func (m *MySQL) Insert(data *models.User) error {
-	stmt, err := m.DB.Prepare("INSERT INTO users (Username, email, password) VALUES (?, ?, ?)")
+	stmt, err := m.DB.Prepare("INSERT INTO users (login, password) VALUES ( ?, ?)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(data.Username, data.Email, data.Password)
+	_, err = stmt.Exec(data.Login, data.Password)
 	if err != nil {
 		return err
 	}
@@ -65,11 +69,11 @@ func (m *MySQL) Delete(data *models.User) {
 
 // Update an user
 func (m *MySQL) Update(id string, data *models.User) {
-	stmt, err := m.DB.Prepare("UPDATE users SET Username = ?, email = ?, password = ? WHERE id = ?")
+	stmt, err := m.DB.Prepare("UPDATE users SET login = ?, password = ? WHERE id = ?")
 	if err != nil {
 		fmt.Printf("error when updating users: \n: %s", err)
 	}
-	_, err = stmt.Exec(data.Username, data.Email, data.Password, id)
+	_, err = stmt.Exec(data.Login, data.Password, id)
 	if err != nil {
 		fmt.Printf("error when updating users: \n: %s", err)
 	}
@@ -82,7 +86,7 @@ func (m *MySQL) Find(id string) (*models.User, error) {
 		return nil, err
 	}
 	var user models.User
-	err = stmt.QueryRow(id).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+	err = stmt.QueryRow(id).Scan(&user.ID, &user.Login, &user.Password)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +102,7 @@ func (m *MySQL) FindAll() ([]models.User, error) {
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+		err = rows.Scan(&user.ID, &user.Login, &user.Password)
 		if err != nil {
 			return nil, err
 		}

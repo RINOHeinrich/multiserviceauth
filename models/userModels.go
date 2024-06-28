@@ -2,12 +2,11 @@ package models
 
 type User struct {
 	ID       string `json:"id"`
-	Username string `json:"username"`
 	Password string `json:"password"`
-	Email    string `json:"email"`
+	Login    string `json:"login"`
 }
 type UserLogin struct {
-	Email    string `json:"email"`
+	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 type UserResponse struct {

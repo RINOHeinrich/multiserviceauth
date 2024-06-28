@@ -29,4 +29,5 @@ func (c *CORSHandler) Handle(next http.HandlerFunc) http.HandlerFunc {
 }
 func (c *CORSHandler) LoadConfig(config *models.Corsconfig) {
 	c.Corsconfig = *config
+	c.IgnoredOptions = true
 }

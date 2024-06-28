@@ -11,4 +11,5 @@ func LoadConfig(filename string) {
 	if err != nil {
 		panic(err)
 	}
+
 }

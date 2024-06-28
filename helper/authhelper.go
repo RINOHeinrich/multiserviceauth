@@ -17,24 +17,28 @@ type LoginManager struct {
 	Bh                *BcryptHandler
 }
 
-func (l *LoginManager) CheckPassword() (*bool, error) {
+func (l *LoginManager) CheckPassword() error {
 
-	iscorrect, err := l.Bh.ComparePassword(l.HashPassword, l.Userlogin.Password)
-	if err != nil || !iscorrect {
-		log.Default().Println(err)
+	err := l.Bh.ComparePassword(l.HashPassword, l.Userlogin.Password)
+	if err != nil {
 		err = l.LoginErrorMessage
-		return nil, err
+		return err
 	}
-	return &iscorrect, nil
+	return nil
 
 }
-func (l *LoginManager) CheckUser() (*models.User, error) {
-	user, err := database.Find(l.Db, l.Userlogin.Email)
+func (l *LoginManager) CheckUser() (models.User, error) {
+	/* 	user := &models.User{}
+	   	err := l.Db.Connect()
+	   	if err != nil {
+	   		return *user, err
+	   	} */
+	user, err := l.Db.Find(l.Userlogin.Login)
 	if err != nil {
-		log.Default().Println(err)
-		return nil, l.LoginErrorMessage
+		return *user, err
 	}
-	return user, nil
+
+	return *user, nil
 }
 
 type BcryptHandler struct {
@@ -45,15 +49,15 @@ func (b *BcryptHandler) HashPassword(password string) string {
 	// Hash the password with the default cost
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("Erreur de hashing", err)
 	}
 	return string(hash)
 }
-func (b *BcryptHandler) ComparePassword(hashedPassword string, password string) (bool, error) {
+func (b *BcryptHandler) ComparePassword(hashedPassword string, password string) error {
 	// Compare the hashed password with the password
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }

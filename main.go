@@ -12,12 +12,12 @@ import (
 )
 
 func init() {
+	config.LoadConfig("config/.env")
 	controller.InitDB()
 }
 
 func main() {
 	var cors middleware.CORSHandler
-	config.LoadConfig("config/.env")
 	cors.LoadConfig(&config.Config.Corsconfig)
 	http.HandleFunc("/users", cors.Handle(routeHandler.Userhandler))
 	http.HandleFunc("/login", cors.Handle(routeHandler.Loginhandler))

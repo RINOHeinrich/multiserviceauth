@@ -3,13 +3,10 @@ package database
 import (
 	"fmt"
 	"log"
-	"os"
-	"strconv"
 
 	"database/sql"
 
 	"github.com/RINOHeinrich/multiserviceauth/models"
-	"github.com/joho/godotenv"
 )
 
 type Postgres struct {
@@ -18,19 +15,23 @@ type Postgres struct {
 }
 
 // Connect to PostgreSQL
-func (m *Postgres) Connect() error {
+func (p *Postgres) Connect() error {
 
-	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", m.Config.DBHost, m.Config.DBPort, m.Config.DBUser, m.Config.DBPassword, m.Config.DBName))
+	db, err := sql.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", p.Config.DBHost, p.Config.DBPort, p.Config.DBUser, p.Config.DBPassword, p.Config.DBName))
 	if err != nil {
 		return err
 	}
-	m.DB = db
+	err = db.Ping()
+	if err != nil {
+		return err
+	}
+	p.DB = db
 	return nil
 }
 
 // Disconnect from PostgreSQL
-func (m *Postgres) Disconnect() error {
-	err := m.DB.Close()
+func (p *Postgres) Disconnect() error {
+	err := p.DB.Close()
 	if err != nil {
 		return err
 	}
@@ -39,12 +40,12 @@ func (m *Postgres) Disconnect() error {
 
 // Implement the methods of the Database interface for PostgreSQL
 // Insert an user
-func (m *Postgres) Insert(data *models.User) error {
-	stmt, err := m.DB.Prepare("INSERT INTO users (username, email, password) VALUES ($1, $2, $3)")
+func (p *Postgres) Insert(data *models.User) error {
+	stmt, err := p.DB.Prepare("INSERT INTO users (login, password) VALUES ($1, $2)")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(data.Username, data.Email, data.Password)
+	_, err = stmt.Exec(data.Login, data.Password)
 	if err != nil {
 		return err
 	}
@@ -52,8 +53,8 @@ func (m *Postgres) Insert(data *models.User) error {
 }
 
 // Delete an user
-func (m *Postgres) Delete(id string) error {
-	stmt, err := m.DB.Prepare("DELETE FROM users WHERE id = $1")
+func (p *Postgres) Delete(id string) error {
+	stmt, err := p.DB.Prepare("DELETE FROM users WHERE id = $1")
 	if err != nil {
 		return err
 	}
@@ -65,12 +66,12 @@ func (m *Postgres) Delete(id string) error {
 }
 
 // Update an user
-func (m *Postgres) Update(id string, data *models.User) error {
-	stmt, err := m.DB.Prepare("UPDATE users SET Username = $1, email = $2, password = $3 WHERE id = $4")
+func (p *Postgres) Update(id string, data *models.User) error {
+	stmt, err := p.DB.Prepare("UPDATE users SET Login = $1, password = $2 WHERE id = $3")
 	if err != nil {
 		return err
 	}
-	_, err = stmt.Exec(data.Username, data.Email, data.Password, id)
+	_, err = stmt.Exec(data.Login, data.Password, id)
 	if err != nil {
 		return err
 	}
@@ -78,29 +79,30 @@ func (m *Postgres) Update(id string, data *models.User) error {
 }
 
 // Find an user by id
-func (m *Postgres) Find(email string) (*models.User, error) {
-	stmt, err := m.DB.Prepare("SELECT * FROM users WHERE email = $1")
+func (p *Postgres) Find(login string) (*models.User, error) {
+	stmt, err := p.DB.Prepare("SELECT * FROM users WHERE login = $1")
 	if err != nil {
 		return nil, err
 	}
 	var user models.User
-	err = stmt.QueryRow(email).Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+	err = stmt.QueryRow(login).Scan(&user.ID, &user.Login, &user.Password)
 	if err != nil {
 		return nil, err
 	}
+	log.Println(user)
 	return &user, nil
 }
 
 // Find all users
-func (m *Postgres) FindAll() ([]models.User, error) {
-	rows, err := m.DB.Query("SELECT * FROM users")
+func (p *Postgres) FindAll() ([]models.User, error) {
+	rows, err := p.DB.Query("SELECT * FROM users")
 	if err != nil {
 		return nil, err
 	}
 	var users []models.User
 	for rows.Next() {
 		var user models.User
-		err = rows.Scan(&user.ID, &user.Username, &user.Email, &user.Password)
+		err = rows.Scan(&user.ID, &user.Login, &user.Password)
 		if err != nil {
 			return nil, err
 		}
@@ -108,20 +110,6 @@ func (m *Postgres) FindAll() ([]models.User, error) {
 	}
 	return users, nil
 }
-func (p *Postgres) LoadConfig(filename string) error {
-	err := godotenv.Load(filename)
-	if err != nil {
-		log.Default().Println(err)
-	}
-	port, err := strconv.Atoi(os.Getenv("DB_PORT"))
-	if err != nil {
-		return err
-	}
-
-	p.Config.DBHost = os.Getenv("DB_HOST")
-	p.Config.DBPort = port
-	p.Config.DBUser = os.Getenv("DB_USER")
-	p.Config.DBPassword = os.Getenv("DB_PASSWORD")
-	p.Config.DBName = os.Getenv("DB_NAME")
-	return nil
+func (p *Postgres) LoadConfig(m *models.Dbconfig) {
+	p.Config = *m
 }
