@@ -25,3 +25,6 @@ type Tokenconfig struct {
 type Bcryptconfig struct {
 	Cost int
 }
+type LoginmanagerConfig struct {
+	LoginErrorMessage string
+}

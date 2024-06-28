@@ -10,13 +10,14 @@ import (
 )
 
 type AppConfig struct {
-	Dbconfig     models.Dbconfig
-	Corsconfig   models.Corsconfig
-	Keyconfig    models.Keyconfig
-	Tokenconfig  models.Tokenconfig
-	Bcryptconfig models.Bcryptconfig
-	Port         int
-	Host         string
+	Dbconfig           models.Dbconfig
+	Corsconfig         models.Corsconfig
+	Keyconfig          models.Keyconfig
+	Tokenconfig        models.Tokenconfig
+	Bcryptconfig       models.Bcryptconfig
+	LoginManagerconfig models.LoginmanagerConfig
+	Port               int
+	Host               string
 }
 
 func (a *AppConfig) LoadConfig(filename string) error {
@@ -48,6 +49,7 @@ func (a *AppConfig) LoadConfig(filename string) error {
 	if err != nil {
 		return err
 	}
+	a.LoginManagerconfig.LoginErrorMessage = os.Getenv("LOGIN_ERROR_MESSAGE")
 	a.Port, err = strconv.Atoi(os.Getenv("PORT"))
 	a.Host = os.Getenv("HOST")
 	if err != nil {

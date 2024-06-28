@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"errors"
 	"log"
 
 	"github.com/RINOHeinrich/multiserviceauth/database"
@@ -9,23 +10,25 @@ import (
 )
 
 type LoginManager struct {
-	Userlogin         models.UserLogin
-	HashPassword      string
-	LoginErrorMessage error
-	Tm                *TokenManager
-	Db                database.Database
-	Bh                *BcryptHandler
+	Config       models.LoginmanagerConfig
+	Userlogin    models.UserLogin
+	HashPassword string
+	Tm           *TokenManager
+	Bh           *BcryptHandler
 }
 
 func (l *LoginManager) CheckPassword() error {
-
 	err := l.Bh.ComparePassword(l.HashPassword, l.Userlogin.Password)
 	if err != nil {
-		err = l.LoginErrorMessage
+		if l.Config.LoginErrorMessage == "" {
+			err = errors.New("incorrect username or password")
+		} else {
+			err = errors.New(l.Config.LoginErrorMessage)
+		}
+		log.Println("Erreur de comparaison", err)
 		return err
 	}
 	return nil
-
 }
 func (l *LoginManager) CheckUser(Db database.Database) (models.User, error) {
 	user := &models.User{}
@@ -54,6 +57,7 @@ func (b *BcryptHandler) ComparePassword(hashedPassword string, password string) 
 	// Compare the hashed password with the password
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
+		log.Println("Erreur de comparaison", err)
 		return err
 	}
 	return nil

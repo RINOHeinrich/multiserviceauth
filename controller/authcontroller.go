@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -22,10 +21,9 @@ func Login(w *http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	//json.Unmarshal(r.Body)
-	fmt.Printf("user login: %s", userlogin.Login)
+	Loginmanager.Config.LoginErrorMessage = config.Config.LoginManagerconfig.LoginErrorMessage
 	Loginmanager.Userlogin = userlogin
-	Loginmanager.Db = &DB
-	Loginmanager.LoginErrorMessage = fmt.Errorf("invalid username or password")
+	//Loginmanager.LoginErrorMessage = fmt.Errorf("invalid username or password")
 	Loginmanager.Bh = &Bh
 	Tokenmanager.LoadConfig(&config.Config)
 	user, err := Loginmanager.CheckUser(&DB)
@@ -38,7 +36,6 @@ func Login(w *http.ResponseWriter, r *http.Request) {
 		http.Error(*w, "invalid username or password", http.StatusUnauthorized)
 		return
 	}
-
 	Loginmanager.HashPassword = user.Password
 	err = Loginmanager.CheckPassword()
 
