@@ -27,15 +27,12 @@ func (l *LoginManager) CheckPassword() error {
 	return nil
 
 }
-func (l *LoginManager) CheckUser() (models.User, error) {
-	/* 	user := &models.User{}
-	   	err := l.Db.Connect()
-	   	if err != nil {
-	   		return *user, err
-	   	} */
-	user, err := l.Db.Find(l.Userlogin.Login)
+func (l *LoginManager) CheckUser(Db database.Database) (models.User, error) {
+	user := &models.User{}
+	user, err := database.Find(Db, l.Userlogin.Login)
+	user1 := models.User{}
 	if err != nil {
-		return *user, err
+		return user1, err
 	}
 
 	return *user, nil

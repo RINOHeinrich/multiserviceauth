@@ -1,1 +1,1 @@
-DELETE http://localhost:8080/users?id=2
+DELETE http://localhost:8080/users?login=Jacqueline1

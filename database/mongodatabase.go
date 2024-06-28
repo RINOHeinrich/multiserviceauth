@@ -82,7 +82,7 @@ func (m *MongoDB) Find(id string) (*models.User, error) {
 	var user models.User
 	err := userCollection.FindOne(context.Background(), filter).Decode(&user)
 	if err != nil {
-		return nil, err
+		return &user, err
 	}
 	return &user, nil
 }

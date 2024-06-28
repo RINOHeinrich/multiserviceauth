@@ -28,7 +28,7 @@ func Login(w *http.ResponseWriter, r *http.Request) {
 	Loginmanager.LoginErrorMessage = fmt.Errorf("invalid username or password")
 	Loginmanager.Bh = &Bh
 	Tokenmanager.LoadConfig(&config.Config)
-	user, err := Loginmanager.CheckUser()
+	user, err := Loginmanager.CheckUser(&DB)
 
 	if err != nil {
 		http.Error(*w, err.Error(), http.StatusUnauthorized)

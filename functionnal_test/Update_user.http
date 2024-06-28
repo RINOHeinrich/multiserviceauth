@@ -1,6 +1,6 @@
-PUT http://localhost:8080/users?id=5
+PUT http://localhost:8080/users?login=Rino
 
 {
-    "login": "Rino",
+    "login": "Rino1",
     "password": "123456"
 }

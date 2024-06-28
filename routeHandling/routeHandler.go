@@ -34,7 +34,7 @@ func Userhandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case "GET":
 		// Handle GET request
-		if len(query["id"]) == 0 {
+		if len(query["login"]) == 0 {
 			controller.GetAllUsers(&w, r)
 			return
 		}
@@ -42,6 +42,7 @@ func Userhandler(w http.ResponseWriter, r *http.Request) {
 	case "PUT":
 		controller.UpdateUser(&w, r)
 	case "DELETE":
+
 		controller.DeleteUser(&w, r)
 	default:
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)

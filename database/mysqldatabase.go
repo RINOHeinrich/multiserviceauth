@@ -88,23 +88,25 @@ func (m *MySQL) Find(id string) (*models.User, error) {
 	var user models.User
 	err = stmt.QueryRow(id).Scan(&user.ID, &user.Login, &user.Password)
 	if err != nil {
-		return nil, err
+		return &user, err
 	}
 	return &user, nil
 }
 
 // Find all users
 func (m *MySQL) FindAll() ([]models.User, error) {
+	var user models.User
+	var users []models.User
 	rows, err := m.DB.Query("SELECT * FROM users")
 	if err != nil {
-		return nil, err
+		return users, err
 	}
-	var users []models.User
+
 	for rows.Next() {
-		var user models.User
+
 		err = rows.Scan(&user.ID, &user.Login, &user.Password)
 		if err != nil {
-			return nil, err
+			return users, err
 		}
 		users = append(users, user)
 	}

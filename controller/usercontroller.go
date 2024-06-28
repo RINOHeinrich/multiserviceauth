@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -36,7 +37,7 @@ func GetAllUsers(w *http.ResponseWriter, r *http.Request) {
 }
 func GetUser(w *http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	id_str := &query["id"][0]
+	id_str := &query["login"][0]
 	if *id_str == "" {
 		http.Error(*w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -51,9 +52,14 @@ func GetUser(w *http.ResponseWriter, r *http.Request) {
 func InsertUser(w *http.ResponseWriter, r *http.Request) {
 	user := models.User{}
 	json.NewDecoder(r.Body).Decode(&user)
-	Loginmanager.Db = &DB
-	User, err := Loginmanager.CheckUser()
+	err := DB.DB.Ping()
 	if err != nil {
+		fmt.Println("Error connecting to database: ", err)
+		return
+	}
+	User, _ := Loginmanager.CheckUser(&DB)
+	if User.Login != "" {
+		err := errors.New("user already exist")
 		http.Error(*w, err.Error(), http.StatusUnauthorized)
 		return
 	}
@@ -81,7 +87,11 @@ func UpdateUser(w *http.ResponseWriter, r *http.Request) {
 	Bh.Config = config.Config.Bcryptconfig
 	user.Password = Bh.HashPassword(user.Password)
 	query := r.URL.Query()
-	id_str := &query["id"][0]
+	if len(query["login"]) == 0 {
+		http.Error(*w, "User not exist", http.StatusMethodNotAllowed)
+		return
+	}
+	id_str := &query["login"][0]
 	if *id_str == "" {
 		http.Error(*w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
@@ -91,11 +101,15 @@ func UpdateUser(w *http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error updating user: ", err)
 		return
 	}
-	fmt.Fprintf(*w, "PUT request received on id %s", *id_str)
+	fmt.Fprintf(*w, "PUT request received on login %s", *id_str)
 }
 func DeleteUser(w *http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
-	id_str := &query["id"][0]
+	if len(query["login"]) == 0 {
+		http.Error(*w, "User not exist", http.StatusMethodNotAllowed)
+		return
+	}
+	id_str := &query["login"][0]
 	if *id_str == "" {
 		http.Error(*w, "Invalid request method", http.StatusMethodNotAllowed)
 		return

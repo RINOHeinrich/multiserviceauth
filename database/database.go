@@ -1,6 +1,8 @@
 package database
 
-import "github.com/RINOHeinrich/multiserviceauth/models"
+import (
+	"github.com/RINOHeinrich/multiserviceauth/models"
+)
 
 type Database interface {
 	Connect() error
@@ -14,10 +16,10 @@ type Database interface {
 	// Ajoutez d'autres méthodes selon vos besoins
 }
 
-func Find(db Database, id string) (*models.User, error) {
-	user, err := db.Find(id)
+func Find(db Database, login string) (*models.User, error) {
+	user, err := db.Find(login)
 	if err != nil {
-		return nil, err
+		return user, err
 	}
 	return user, nil
 	// Implémentez la méthode Find pour MongoDB
@@ -25,7 +27,7 @@ func Find(db Database, id string) (*models.User, error) {
 func FindAll(db Database) ([]models.User, error) {
 	users, err := db.FindAll()
 	if err != nil {
-		return nil, err
+		return users, err
 	}
 	return users, nil
 	// Implémentez la méthode FindAll pour MongoDB

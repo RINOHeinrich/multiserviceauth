@@ -54,7 +54,7 @@ func (p *Postgres) Insert(data *models.User) error {
 
 // Delete an user
 func (p *Postgres) Delete(id string) error {
-	stmt, err := p.DB.Prepare("DELETE FROM users WHERE id = $1")
+	stmt, err := p.DB.Prepare("DELETE FROM users WHERE login = $1")
 	if err != nil {
 		return err
 	}
@@ -67,7 +67,7 @@ func (p *Postgres) Delete(id string) error {
 
 // Update an user
 func (p *Postgres) Update(id string, data *models.User) error {
-	stmt, err := p.DB.Prepare("UPDATE users SET Login = $1, password = $2 WHERE id = $3")
+	stmt, err := p.DB.Prepare("UPDATE users SET login = $1, password = $2 WHERE login = $3")
 	if err != nil {
 		return err
 	}
@@ -80,11 +80,12 @@ func (p *Postgres) Update(id string, data *models.User) error {
 
 // Find an user by id
 func (p *Postgres) Find(login string) (*models.User, error) {
+	var user models.User
 	stmt, err := p.DB.Prepare("SELECT * FROM users WHERE login = $1")
 	if err != nil {
-		return nil, err
+		return &user, err
 	}
-	var user models.User
+
 	err = stmt.QueryRow(login).Scan(&user.ID, &user.Login, &user.Password)
 	if err != nil {
 		return nil, err
