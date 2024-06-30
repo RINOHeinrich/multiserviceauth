@@ -35,6 +35,11 @@ func (l *LoginManager) CheckUser(Db database.Database) (models.User, error) {
 	user, err := database.Find(Db, l.Userlogin.Login)
 	user1 := models.User{}
 	if err != nil {
+		if l.Config.LoginErrorMessage == "" {
+			err = errors.New("incorrect username or password")
+		} else {
+			err = errors.New(l.Config.LoginErrorMessage)
+		}
 		return user1, err
 	}
 

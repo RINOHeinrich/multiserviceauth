@@ -10,11 +10,11 @@ import (
 	"github.com/RINOHeinrich/multiserviceauth/models"
 )
 
-var Loginmanager helper.LoginManager
 var Tokenmanager helper.TokenManager
 var Keymanager helper.KeyManager
 
 func Login(w *http.ResponseWriter, r *http.Request) {
+	var Loginmanager helper.LoginManager
 	userlogin := models.UserLogin{}
 	err := json.NewDecoder(r.Body).Decode(&userlogin)
 	if err != nil {
@@ -33,7 +33,7 @@ func Login(w *http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if user.Login == "" {
-		http.Error(*w, "invalid username or password", http.StatusUnauthorized)
+		http.Error(*w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 	Loginmanager.HashPassword = user.Password

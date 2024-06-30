@@ -2,7 +2,6 @@ package controller
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -57,17 +56,6 @@ func InsertUser(w *http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error connecting to database: ", err)
 		return
 	}
-	User, _ := Loginmanager.CheckUser(&DB)
-	if User.Login != "" {
-		err := errors.New("user already exist")
-		http.Error(*w, err.Error(), http.StatusUnauthorized)
-		return
-	}
-	user1 := User
-	if user1.Login == user.Login {
-		http.Error(*w, "User already exists", http.StatusUnauthorized)
-		return
-	}
 	Bh.Config = config.Config.Bcryptconfig
 	// Handle POST request
 	user.Password = Bh.HashPassword(user.Password)
@@ -75,7 +63,8 @@ func InsertUser(w *http.ResponseWriter, r *http.Request) {
 	err = DB.Insert(&user)
 
 	if err != nil {
-		fmt.Println("Error inserting user: ", err)
+		http.Error(*w, "User already exists", http.StatusUnauthorized)
+		fmt.Println("User already exists")
 		return
 	}
 	fmt.Fprintf(*w, "User inserted: %v\n", user)
