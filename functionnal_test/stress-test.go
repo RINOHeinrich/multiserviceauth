@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 	endpoint := "http://localhost:8080/login"
 
 	// Number of concurrent requests
-	numRequests := 100
+	numRequests := 180
 
 	// WaitGroup to synchronize the goroutines
 	var wg sync.WaitGroup
@@ -37,6 +38,7 @@ func main() {
 		payload, err := json.Marshal(data)
 		if err != nil {
 			fmt.Println("Error marshalling JSON:", err)
+			statusChan <- http.StatusInternalServerError
 			return
 		}
 
@@ -44,6 +46,7 @@ func main() {
 		req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(payload))
 		if err != nil {
 			fmt.Println("Error creating request:", err)
+			statusChan <- http.StatusInternalServerError
 			return
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -59,8 +62,6 @@ func main() {
 
 		// Send status to channel for counting
 		statusChan <- resp.StatusCode
-
-		//fmt.Printf("Request for login=%s, password=%s | Status: %s\n", login, password, resp.Status)
 	}
 
 	// Launch concurrent requests
@@ -71,9 +72,10 @@ func main() {
 		} else {
 			go doRequest(login2, password2)
 		}
+		time.Sleep(time.Millisecond * 7)
 	}
 
-	// Close channel after all requests are done
+	// Wait for all requests to finish
 	go func() {
 		wg.Wait()
 		close(statusChan)

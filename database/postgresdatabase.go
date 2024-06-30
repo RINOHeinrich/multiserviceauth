@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"log"
 
 	"database/sql"
 
@@ -90,7 +89,6 @@ func (p *Postgres) Find(login string) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println(user)
 	return &user, nil
 }
 

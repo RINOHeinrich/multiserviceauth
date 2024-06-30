@@ -9,8 +9,7 @@ import (
 )
 
 func Loginhandler(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query()
-	fmt.Println(query)
+	//query := r.URL.Query()
 	switch r.Method {
 	case "POST":
 		controller.Login(&w, r)

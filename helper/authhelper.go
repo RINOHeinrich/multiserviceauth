@@ -2,7 +2,6 @@ package helper
 
 import (
 	"errors"
-	"log"
 
 	"github.com/RINOHeinrich/multiserviceauth/database"
 	"github.com/RINOHeinrich/multiserviceauth/models"
@@ -25,7 +24,6 @@ func (l *LoginManager) CheckPassword() error {
 		} else {
 			err = errors.New(l.Config.LoginErrorMessage)
 		}
-		log.Println("Erreur de comparaison", err)
 		return err
 	}
 	return nil
@@ -54,7 +52,7 @@ func (b *BcryptHandler) HashPassword(password string) string {
 	// Hash the password with the default cost
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println("Erreur de hashing", err)
+		return ""
 	}
 	return string(hash)
 }
@@ -62,7 +60,7 @@ func (b *BcryptHandler) ComparePassword(hashedPassword string, password string) 
 	// Compare the hashed password with the password
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
-		log.Println("Erreur de comparaison", err)
+		//log.Println("Erreur de comparaison", err)
 		return err
 	}
 	return nil
