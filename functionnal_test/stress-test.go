@@ -2,48 +2,48 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
+	"flag"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
 )
 
 func main() {
-	login1 := "Rino"
-	password1 := "123456"
-	login2 := "Rino1234"
-	password2 := "OSNIA1"
-	endpoint := "http://localhost:8080/login"
+	// Command line flags
+	numRequests := flag.Int("numRequests", 180, "Number of concurrent requests to send")
+	sleepDuration := flag.Duration("sleepDuration", 7*time.Millisecond, "Duration to sleep between requests")
+	endpointURL := flag.String("endpoint", "http://localhost:8080/login", "URL of the login endpoint")
+	jsonFilePath := flag.String("jsonFile", "", "Path to the JSON file containing the payload")
+	flag.Parse()
 
-	// Number of concurrent requests
-	numRequests := 180
+	// Validate numRequests
+	if *numRequests <= 0 {
+		fmt.Println("Number of requests must be greater than zero")
+		return
+	}
+
+	// Read JSON payload from file
+	fileContent, err := ioutil.ReadFile(*jsonFilePath)
+	if err != nil {
+		fmt.Printf("Error reading JSON file: %s\n", err)
+		return
+	}
 
 	// WaitGroup to synchronize the goroutines
 	var wg sync.WaitGroup
-	wg.Add(numRequests)
+	wg.Add(*numRequests)
 
 	// Channel to collect response statuses
-	statusChan := make(chan int, numRequests)
+	statusChan := make(chan int, *numRequests)
 
-	// Function to perform the request with JSON payload
-	doRequest := func(login, password string) {
+	// Function to perform the request with JSON payload from file
+	doRequest := func(payload []byte) {
 		defer wg.Done()
 
-		// Create JSON payload
-		data := map[string]string{
-			"login":    login,
-			"password": password,
-		}
-		payload, err := json.Marshal(data)
-		if err != nil {
-			fmt.Println("Error marshalling JSON:", err)
-			statusChan <- http.StatusInternalServerError
-			return
-		}
-
 		// Create a POST request with JSON body
-		req, err := http.NewRequest("POST", endpoint, bytes.NewBuffer(payload))
+		req, err := http.NewRequest("POST", *endpointURL, bytes.NewBuffer(payload))
 		if err != nil {
 			fmt.Println("Error creating request:", err)
 			statusChan <- http.StatusInternalServerError
@@ -64,15 +64,11 @@ func main() {
 		statusChan <- resp.StatusCode
 	}
 
+	startTime := time.Now()
 	// Launch concurrent requests
-	for i := 0; i < numRequests; i++ {
-		// Alternate between login1 and login2/password2
-		if i%2 == 0 {
-			go doRequest(login1, password1)
-		} else {
-			go doRequest(login2, password2)
-		}
-		time.Sleep(time.Millisecond * 7)
+	for i := 0; i < *numRequests; i++ {
+		go doRequest(fileContent)
+		time.Sleep(*sleepDuration)
 	}
 
 	// Wait for all requests to finish
@@ -84,6 +80,7 @@ func main() {
 	// Counters for status codes
 	count200 := 0
 	count401 := 0
+	count500 := 0
 
 	// Collect status codes
 	for status := range statusChan {
@@ -92,10 +89,17 @@ func main() {
 			count200++
 		case http.StatusUnauthorized:
 			count401++
+		case http.StatusInternalServerError:
+			count500++
 		}
 	}
+
+	// Calculate and print the duration
+	duration := time.Since(startTime)
+	fmt.Printf("\nTest duration: %s\n", duration)
 
 	// Print the counts
 	fmt.Printf("\nNumber of 200 OK responses: %d\n", count200)
 	fmt.Printf("Number of 401 Unauthorized responses: %d\n", count401)
+	fmt.Printf("Number of 500 Internal Server Error responses: %d\n", count500)
 }
