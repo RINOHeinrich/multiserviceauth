@@ -16,6 +16,7 @@ type AppConfig struct {
 	Tokenconfig        models.Tokenconfig
 	Bcryptconfig       models.Bcryptconfig
 	LoginManagerconfig models.LoginmanagerConfig
+	PublicKeyAccess    models.PublicKeyAccessConfig
 	Port               int
 	Host               string
 }
@@ -54,6 +55,12 @@ func (a *AppConfig) LoadConfig(filename string) error {
 	a.Host = os.Getenv("HOST")
 	if err != nil {
 		return err
+	}
+	publicKeyAccessString := os.Getenv("PUBLIC_KEY_ROUTE_ENABLED")
+	if publicKeyAccessString == "true" {
+		a.PublicKeyAccess.Enable = true
+	} else {
+		a.PublicKeyAccess.Enable = false
 	}
 	return nil
 }

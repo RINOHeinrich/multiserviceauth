@@ -28,3 +28,6 @@ type Bcryptconfig struct {
 type LoginmanagerConfig struct {
 	LoginErrorMessage string
 }
+type PublicKeyAccessConfig struct {
+	Enable bool
+}

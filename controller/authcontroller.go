@@ -11,9 +11,9 @@ import (
 )
 
 var Tokenmanager helper.TokenManager
-var Keymanager helper.KeyManager
 
 func Login(w *http.ResponseWriter, r *http.Request) {
+	var Keymanager helper.KeyManager
 	var Loginmanager helper.LoginManager
 	userlogin := models.UserLogin{}
 	err := json.NewDecoder(r.Body).Decode(&userlogin)

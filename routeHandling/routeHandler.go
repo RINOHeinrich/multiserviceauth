@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/RINOHeinrich/multiserviceauth/config"
 	"github.com/RINOHeinrich/multiserviceauth/controller"
+	"github.com/RINOHeinrich/multiserviceauth/helper"
 )
 
 func Loginhandler(w http.ResponseWriter, r *http.Request) {
@@ -48,11 +50,13 @@ func Userhandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func Pubkeyhandler(w http.ResponseWriter, r *http.Request) {
+	var Keymanager helper.KeyManager
+	Keymanager.LoadConfig(&config.Config.Keyconfig)
 	query := r.URL.Query()
 	fmt.Println(query)
 	switch r.Method {
 	case "GET":
-		pubkey, err := controller.Keymanager.GetPublicKey()
+		pubkey, err := Keymanager.GetPublicKey()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
